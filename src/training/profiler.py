@@ -1,6 +1,10 @@
 import argparse
 
 import torch
+from training.distributed import try_import_npu
+if not try_import_npu():
+    torch_npu = None
+
 import open_clip
 import pandas as pd
 from torch.utils.flop_counter import FlopCounterMode
@@ -133,6 +137,8 @@ def profile_model(model_name, batch_size=1, profiler='torch'):
     model.eval()
     if torch.cuda.is_available():
         model = model.cuda()
+    elif torch_npu != None and torch.npu.is_available():
+        model = model.npu()
 
     if isinstance(model.visual.image_size, (tuple, list)):
         image_input_size = (3,) + tuple(model.visual.image_size[-2:])
