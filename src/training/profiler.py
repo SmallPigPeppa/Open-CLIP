@@ -2,8 +2,9 @@ import argparse
 
 import torch
 from training.distributed import try_import_npu
-if not try_import_npu():
-    torch_npu = None
+TORCH_NPU_AVAILABLE = False
+if try_import_npu():
+    TORCH_NPU_AVAILABLE = True
 
 import open_clip
 import pandas as pd
@@ -137,7 +138,7 @@ def profile_model(model_name, batch_size=1, profiler='torch'):
     model.eval()
     if torch.cuda.is_available():
         model = model.cuda()
-    elif torch_npu != None and torch.npu.is_available():
+    elif TORCH_NPU_AVAILABLE and torch.npu.is_available():
         model = model.npu()
 
     if isinstance(model.visual.image_size, (tuple, list)):

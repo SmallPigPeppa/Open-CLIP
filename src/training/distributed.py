@@ -18,7 +18,9 @@ def try_import_npu():
     except ImportError:
         return False
 
-try_import_npu()
+TORCH_NPU_AVAILABLE = False
+if try_import_npu():
+    TORCH_NPU_AVAILABLE = True
 
 def is_global_master(args):
     return args.rank == 0
@@ -118,12 +120,12 @@ def init_distributed_device(args):
         else:
             device = 'cuda:0'
         torch.cuda.set_device(device)
-    if torch_npu != None and torch.npu.is_available():
+    if TORCH_NPU_AVAILABLE and torch.npu.is_available():
         if args.distributed and not args.no_set_device_rank:
             device = 'npu:%d' % args.local_rank
         else:
             device = "npu:0"
-        torch_npu.npu.set_device(device)
+        torch.npu.set_device(device)
     else:
         device = 'cpu'
     args.device = device

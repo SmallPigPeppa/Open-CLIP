@@ -36,8 +36,9 @@ from training.scheduler import cosine_lr, const_lr, const_lr_cooldown
 from training.train import train_one_epoch, evaluate
 from training.file_utils import pt_load, check_exists, start_sync_process, remote_sync
 
-if not try_import_npu():
-    torch_npu = None
+TORCH_NPU_AVAILABLE = False
+if try_import_npu():
+    TORCH_NPU_AVAILABLE = True
 
 LATEST_CHECKPOINT_NAME = "epoch_latest.pt"
 
@@ -331,7 +332,7 @@ def main(args):
             hvd.broadcast_optimizer_state(optimizer, root_rank=0)
 
         if args.precision == "amp":
-            if torch_npu != None and torch.npu.is_available():
+            if TORCH_NPU_AVAILABLE and torch.npu.is_available():
                 from torch.npu.amp import GradScaler
             else:
                 from torch.cuda.amp import GradScaler
